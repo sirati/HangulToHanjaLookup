@@ -33,10 +33,14 @@ use_neural_network = True
 
 
 if use_neural_network:
+    print("loading spacy")
     import spacy
 
+
+    print("loading spacy's word2vec")
     # Load the pre-trained model
     nlp = spacy.load("en_core_web_md")  # medium-sized model with word vectors
+    print("done loading ML")
 
 
 def log(txt):
@@ -97,8 +101,11 @@ class DiskCache(SimpleMemoryBackend):
                         content = "\n".join(await file.readlines())
                         self._cache[key] = content
                         return content
-                    else:
-                        os.remove(file_path)
+                    elif self.ttl:
+                        try:
+                            os.remove(file_path)
+                        except:
+                            pass
 
         return None
 
@@ -159,6 +166,7 @@ def hanja_dict_preparser(value):
 caches.add('response', {
                 'cache': f"{DiskCache.__module__}.{DiskCache.__qualname__}",
                 'directory': '.cache',
+                'ttl': 604800,
                 'serializer': {
                     'class': f"{ResponseSerializer.__module__}.{ResponseSerializer.__qualname__}",
                     'pre_parser': hanja_dict_preparser
